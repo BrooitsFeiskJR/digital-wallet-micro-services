@@ -3,18 +3,18 @@ package entities
 import (
 	"errors"
 
-	"github.com/BrooitsFeiskJR/digital-wallet-user-service/dto"
+	"github.com/BrooitsFeiskJR/digital-wallet-user-service/domain/dto"
 	"github.com/BrooitsFeiskJR/digital-wallet-user-service/validation"
 	"github.com/google/uuid"
 )
 
 type User struct {
-	ID          uuid.UUID `json:"id"`
-	Name        string    `json:"name"`
-	Email       string    `json:"email"`
-	Password    string    `json:"password"`
-	PhoneNumber string    `json:"phone_number"`
-	CPF         string    `json:"cpf"`
+	ID          uuid.UUID `json:"id" db:"id"`
+	Name        string    `json:"name" db:"name"`
+	Email       string    `json:"email" db:"email"`
+	Password    string    `json:"password" db:"password"`
+	PhoneNumber string    `json:"phone_number" db:"phone_number"`
+	CPF         string    `json:"cpf" db:"cpf"`
 }
 
 func NewUser(dto dto.CreateUserDTO) (*User, error) {

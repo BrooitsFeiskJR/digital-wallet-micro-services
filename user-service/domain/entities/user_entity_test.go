@@ -3,7 +3,7 @@ package entities
 import (
 	"testing"
 
-	"github.com/BrooitsFeiskJR/digital-wallet-user-service/dto"
+	"github.com/BrooitsFeiskJR/digital-wallet-user-service/domain/dto"
 	"github.com/stretchr/testify/assert"
 )
 
