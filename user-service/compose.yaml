@@ -15,7 +15,7 @@ services:
     restart: always
     user: postgres
     volumes:
-    - infra/db/migrations:/docker-entrypoint-initdb.d
+    - ./infra/db/migrations:/docker-entrypoint-initdb.d
     env_file:
       - .env
     expose:
