@@ -21,28 +21,12 @@ type User struct {
 }
 
 func NewUser(dto *dto.CreateUserDTO) (*User, error) {
-	if err := validation.ValidateUserRequiredFields(dto.Name, dto.Email, dto.Password, dto.PhoneNumber, dto.CPF); err != nil {
+	if valid, err := validateDTO(dto); !valid {
 		return nil, err
-	}
-	result := validation.ValidateEmailField(dto.Email)
-	if !result {
-		return nil, errors.New("email is invalid")
-	}
-	result = validation.ValidatePasswordField(dto.Password)
-	if !result {
-		return nil, errors.New("password length must be greater than 8")
 	}
 	hash, err := validation.HashPassword(dto.Password)
 	if err != nil {
 		return nil, err
-	}
-	result = validation.ValidPhoneNumber(dto.PhoneNumber)
-	if !result {
-		return nil, errors.New("phone number is invalid")
-	}
-	result = validation.CheckCPF(dto.CPF)
-	if !result {
-		return nil, errors.New("CPF is invalid")
 	}
 	return &User{
 		ID:          uuid.New(),
@@ -54,4 +38,26 @@ func NewUser(dto *dto.CreateUserDTO) (*User, error) {
 		CreatedAt:   time.Now().Format(time.RFC3339),
 		UpdateAt:    time.Now().Format(time.RFC3339),
 	}, nil
+}
+
+func validateDTO(dto *dto.CreateUserDTO) (bool, error) {
+	if err := validation.ValidateUserRequiredFields(dto.Name, dto.Email, dto.Password, dto.PhoneNumber, dto.CPF); err != nil {
+		return false, err
+	}
+	if !validation.ValidateEmailField(dto.Email) {
+		return false, errors.New("email is invalid")
+	}
+	if !validation.ValidatePasswordField(dto.Password) {
+		return false, errors.New("password length must be greater than 8")
+	}
+	if !validation.ValidatePasswordAndConfirmPassword(dto.Password, dto.ConfirmPassword) {
+		return false, errors.New("password and confirm password must be the same")
+	}
+	if !validation.ValidPhoneNumber(dto.PhoneNumber) {
+		return false, errors.New("phone number is invalid")
+	}
+	if !validation.CheckCPF(dto.CPF) {
+		return false, errors.New("CPF is invalid")
+	}
+	return true, nil
 }

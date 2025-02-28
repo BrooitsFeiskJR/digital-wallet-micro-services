@@ -9,11 +9,12 @@ import (
 
 func TestUserConstructor(t *testing.T) {
 	dto := dto.CreateUserDTO{
-		Name:        "example",
-		Email:       "example@example.com",
-		Password:    "password",
-		PhoneNumber: "43999999999",
-		CPF:         "12345678909",
+		Name:            "example",
+		Email:           "example@example.com",
+		Password:        "password",
+		ConfirmPassword: "password",
+		PhoneNumber:     "43999999999",
+		CPF:             "12345678909",
 	}
 	user, err := NewUser(&dto)
 	if err != nil {
@@ -31,11 +32,12 @@ func TestUserConstructor(t *testing.T) {
 
 func TestUserConstructorInvalidPhoneNumber(t *testing.T) {
 	dto := dto.CreateUserDTO{
-		Name:        "example",
-		Email:       "example@example.com",
-		Password:    "password",
-		PhoneNumber: "invalid-phone-number",
-		CPF:         "12345678909",
+		Name:            "example",
+		Email:           "example@example.com",
+		Password:        "password",
+		ConfirmPassword: "password",
+		PhoneNumber:     "invalid-phone-number",
+		CPF:             "12345678909",
 	}
 	user, err := NewUser(&dto)
 	assert.NotNil(t, err)
@@ -44,11 +46,12 @@ func TestUserConstructorInvalidPhoneNumber(t *testing.T) {
 
 func TestUserConstructorInvalidEmail(t *testing.T) {
 	dto := dto.CreateUserDTO{
-		Name:        "example",
-		Email:       "invalid-email",
-		Password:    "password",
-		PhoneNumber: "43999999999",
-		CPF:         "12345678909",
+		Name:            "example",
+		Email:           "invalid-email",
+		Password:        "password",
+		ConfirmPassword: "password",
+		PhoneNumber:     "43999999999",
+		CPF:             "12345678909",
 	}
 	user, err := NewUser(&dto)
 	assert.NotNil(t, err)
@@ -57,11 +60,12 @@ func TestUserConstructorInvalidEmail(t *testing.T) {
 
 func TestUserConstructorInvalidPassword(t *testing.T) {
 	dto := dto.CreateUserDTO{
-		Name:        "example",
-		Email:       "example@example.com",
-		Password:    "short",
-		PhoneNumber: "43999999999",
-		CPF:         "12345678909",
+		Name:            "example",
+		Email:           "example@example.com",
+		Password:        "short",
+		ConfirmPassword: "short",
+		PhoneNumber:     "43999999999",
+		CPF:             "12345678909",
 	}
 	user, err := NewUser(&dto)
 	assert.NotNil(t, err)
@@ -70,11 +74,12 @@ func TestUserConstructorInvalidPassword(t *testing.T) {
 
 func TestUserConstructorInvalidCPF(t *testing.T) {
 	dto := dto.CreateUserDTO{
-		Name:        "example",
-		Email:       "example@example.com",
-		Password:    "password",
-		PhoneNumber: "43999999999",
-		CPF:         "invalid-cpf",
+		Name:            "example",
+		Email:           "example@example.com",
+		Password:        "password",
+		ConfirmPassword: "password",
+		PhoneNumber:     "43999999999",
+		CPF:             "invalid-cpf",
 	}
 	user, err := NewUser(&dto)
 	assert.NotNil(t, err)
@@ -83,11 +88,12 @@ func TestUserConstructorInvalidCPF(t *testing.T) {
 
 func TestUserConstructorMissingFields(t *testing.T) {
 	dto := dto.CreateUserDTO{
-		Name:        "",
-		Email:       "",
-		Password:    "",
-		PhoneNumber: "",
-		CPF:         "",
+		Name:            "",
+		Email:           "",
+		Password:        "",
+		ConfirmPassword: "",
+		PhoneNumber:     "",
+		CPF:             "",
 	}
 	user, err := NewUser(&dto)
 	assert.NotNil(t, err)
@@ -96,11 +102,12 @@ func TestUserConstructorMissingFields(t *testing.T) {
 
 func TestCreatedAndUpteAtFields(t *testing.T) {
 	dto := dto.CreateUserDTO{
-		Name:        "example",
-		Email:       "example@example.com",
-		Password:    "password",
-		PhoneNumber: "43999999999",
-		CPF:         "12345678909",
+		Name:            "example",
+		Email:           "example@example.com",
+		Password:        "password",
+		ConfirmPassword: "password",
+		PhoneNumber:     "43999999999",
+		CPF:             "12345678909",
 	}
 	user, err := NewUser(&dto)
 	if err != nil {
@@ -112,4 +119,38 @@ func TestCreatedAndUpteAtFields(t *testing.T) {
 	}
 	assert.NotNil(t, user.CreatedAt)
 	assert.NotNil(t, user.UpdateAt)
+}
+
+func ValidatePasswordAndConfirmPassword(t *testing.T) {
+	dto := dto.CreateUserDTO{
+		Name:            "example",
+		Email:           "example@example.com",
+		Password:        "password",
+		ConfirmPassword: "password",
+		PhoneNumber:     "43999999999",
+		CPF:             "12345678909",
+	}
+	user, err := NewUser(&dto)
+	if err != nil {
+		t.Errorf("Error creating user: %v", err)
+	}
+	if user == nil {
+		t.Errorf("Expected user, got nil")
+		return
+	}
+	assert.Equal(t, dto.Password, user.Password)
+}
+
+func TestUserConstructorPasswordAndConfirmPasswordMismatch(t *testing.T) {
+	dto := dto.CreateUserDTO{
+		Name:            "example",
+		Email:           "example@example.com",
+		Password:        "password",
+		ConfirmPassword: "password-mismatch",
+		PhoneNumber:     "43999999999",
+		CPF:             "12345678909",
+	}
+	user, err := NewUser(&dto)
+	assert.NotNil(t, err)
+	assert.Nil(t, user)
 }
