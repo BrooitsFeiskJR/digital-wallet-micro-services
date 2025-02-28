@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/BrooitsFeiskJR/digital-wallet-user-service/domain/dto"
-	"github.com/BrooitsFeiskJR/digital-wallet-user-service/validation"
+	"github.com/BrooitsFeiskJR/digital-wallet-user-service/domain/validation"
 	"github.com/google/uuid"
 )
 
