@@ -12,10 +12,10 @@ func TestUserConstructor(t *testing.T) {
 		Name:        "example",
 		Email:       "example@example.com",
 		Password:    "password",
-		PhoneNumber: "08123456789",
+		PhoneNumber: "43999999999",
 		CPF:         "12345678909",
 	}
-	user, err := NewUser(dto)
+	user, err := NewUser(&dto)
 	if err != nil {
 		t.Errorf("Error creating user: %v", err)
 	}
@@ -37,7 +37,7 @@ func TestUserConstructorInvalidPhoneNumber(t *testing.T) {
 		PhoneNumber: "invalid-phone-number",
 		CPF:         "12345678909",
 	}
-	user, err := NewUser(dto)
+	user, err := NewUser(&dto)
 	assert.NotNil(t, err)
 	assert.Nil(t, user)
 }
@@ -47,10 +47,23 @@ func TestUserConstructorInvalidEmail(t *testing.T) {
 		Name:        "example",
 		Email:       "invalid-email",
 		Password:    "password",
-		PhoneNumber: "1234567890",
+		PhoneNumber: "43999999999",
 		CPF:         "12345678909",
 	}
-	user, err := NewUser(dto)
+	user, err := NewUser(&dto)
+	assert.NotNil(t, err)
+	assert.Nil(t, user)
+}
+
+func TestUserConstructorInvalidPassword(t *testing.T) {
+	dto := dto.CreateUserDTO{
+		Name:        "example",
+		Email:       "example@example.com",
+		Password:    "short",
+		PhoneNumber: "43999999999",
+		CPF:         "12345678909",
+	}
+	user, err := NewUser(&dto)
 	assert.NotNil(t, err)
 	assert.Nil(t, user)
 }
@@ -60,10 +73,10 @@ func TestUserConstructorInvalidCPF(t *testing.T) {
 		Name:        "example",
 		Email:       "example@example.com",
 		Password:    "password",
-		PhoneNumber: "1234567890",
+		PhoneNumber: "43999999999",
 		CPF:         "invalid-cpf",
 	}
-	user, err := NewUser(dto)
+	user, err := NewUser(&dto)
 	assert.NotNil(t, err)
 	assert.Nil(t, user)
 }
@@ -76,7 +89,27 @@ func TestUserConstructorMissingFields(t *testing.T) {
 		PhoneNumber: "",
 		CPF:         "",
 	}
-	user, err := NewUser(dto)
+	user, err := NewUser(&dto)
 	assert.NotNil(t, err)
 	assert.Nil(t, user)
+}
+
+func TestCreatedAndUpteAtFields(t *testing.T) {
+	dto := dto.CreateUserDTO{
+		Name:        "example",
+		Email:       "example@example.com",
+		Password:    "password",
+		PhoneNumber: "43999999999",
+		CPF:         "12345678909",
+	}
+	user, err := NewUser(&dto)
+	if err != nil {
+		t.Errorf("Error creating user: %v", err)
+	}
+	if user == nil {
+		t.Errorf("Expected user, got nil")
+		return
+	}
+	assert.NotNil(t, user.CreatedAt)
+	assert.NotNil(t, user.UpdateAt)
 }
