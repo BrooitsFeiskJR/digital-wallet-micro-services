@@ -10,7 +10,7 @@ func main() {
 	connString := db.ConnectionString()
 	_, err := db.ConnectToDB(connString)
 	if err != nil {
-		fmt.Println("error connecting to database: %v", err)
+		fmt.Printf("error connecting to database: %v", err)
 		return
 	}
 	fmt.Println("Hello, Digital Wallet!")
