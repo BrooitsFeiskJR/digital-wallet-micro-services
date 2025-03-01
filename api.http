@@ -1,0 +1,47 @@
+# This file contains HTTP requests for user registration and login for the digital wallet microservices.
+# 
+# 1. User Registration:
+#    - Endpoint: POST http://localhost:8080/api/v1/auth/register
+#    - Content-Type: application/json
+#    - Request Body:
+#      {
+#          "name": "John Doe",
+#          "email": "jhon@example.com",
+#          "password": "password",
+#          "confirm_password": "password",
+#          "phone_number": "43999999999",
+#          "cpf": "12345678909"
+#      }
+#
+# 2. User Login:
+#    - Endpoint: POST http://localhost:8080/api/v1/auth/login
+#    - Content-Type: application/json
+#    - Request Body:
+#      {
+#          "email": "jhon@example.com",
+#          "password": "password"
+#      }
+#    - The response body contains the authentication token, which is stored in the variable @authToken.
+POST http://localhost:8080/api/v1/auth/register
+Content-Type: application/json
+
+{
+    "name": "John Doe",
+    "email": "jhon@example.com",
+    "password": "password",
+    "confirm_password": "password",
+    "phone_number": "43999999999",
+    "cpf": "12345678909"
+}
+###
+# @name login
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{
+    "email": "jhon@example.com",
+    "password": "password"
+}
+###
+@authToken = {{ login.response.body.data }}
+###
