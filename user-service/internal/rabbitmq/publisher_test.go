@@ -138,7 +138,7 @@ func TestPublishUserCreated(t *testing.T) {
 	assert.Equal(t, "user_created", receivedMsg["event_type"])
 	assert.Equal(t, userID, receivedMsg["user_id"])
 	assert.Equal(t, email, receivedMsg["email"])
-	assert.NotNil(t, receivedMsg["timestamp"])
+	assert.NotNil(t, receivedMsg["created_at"])
 
 	defer cleanup(t, "user_queue")
 }

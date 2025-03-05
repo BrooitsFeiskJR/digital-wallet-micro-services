@@ -93,7 +93,7 @@ func (p *Publisher) PublishUserCreated(userID string, email string) error {
 		"event_type": "user_created",
 		"user_id":    userID,
 		"email":      email,
-		"timestamp":  time.Now(),
+		"created_at": time.Now(),
 	}
 
 	return p.PublishMessage(ctx, "user_queue", message)
