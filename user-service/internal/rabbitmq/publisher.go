@@ -3,6 +3,7 @@ package rabbitmq
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"os"
 	"time"
 
@@ -18,6 +19,9 @@ type Publisher struct {
 // NewPublisher creates and returns a new Publisher instance
 func NewPublisher() (*Publisher, error) {
 	connString := os.Getenv("RABBITMQ_CONN_STRING")
+	if connString == "" {
+		return nil, errors.New("env RABBITMQ_CONN_STRING is required")
+	}
 	conn, err := amqp.Dial(connString)
 	if err != nil {
 		return nil, err
