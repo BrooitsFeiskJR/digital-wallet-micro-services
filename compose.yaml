@@ -2,11 +2,10 @@ services:
   rabbitMQ:
     image: rabbitmq:4.0
     restart: always
-    ports:
-      - 5672:5672
-      - 15672:15672
     env_file:
       - rabbit.env
+    ports:
+      - 5672:5672
     healthcheck:
       test: ["CMD", "rabbitmqctl", "status"]
       interval: 30s
