@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/BrooitsFeiskJR/digital-wallet-wallet-service/domain/dto"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -20,11 +21,11 @@ type Wallet struct {
 	UpdateAt time.Time          `bson:"update_at,omitempty" json:"update_at"`
 }
 
-func CreateWallet(userID string) (*Wallet, error) {
-	if userID == "" {
+func CreateWallet(dto *dto.CreateWalletDTO) (*Wallet, error) {
+	if dto.UserID == "" {
 		return nil, ErrEmptyUserID
 	}
-	uID, err := primitive.ObjectIDFromHex(userID)
+	uID, err := primitive.ObjectIDFromHex(dto.UserID)
 	if err != nil {
 		return nil, ErrConvertObjectID
 	}

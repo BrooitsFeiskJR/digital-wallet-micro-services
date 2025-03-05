@@ -3,6 +3,7 @@ package entities
 import (
 	"testing"
 
+	"github.com/BrooitsFeiskJR/digital-wallet-wallet-service/domain/dto"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -34,8 +35,11 @@ func TestCreateWallet(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		dto := &dto.CreateWalletDTO{
+			UserID: tt.userID,
+		}
 		t.Run(tt.name, func(t *testing.T) {
-			wallet, err := CreateWallet(tt.userID)
+			wallet, err := CreateWallet(dto)
 			if err != tt.wantErr {
 				t.Errorf("CreateWallet() error = %v, wantErr %v", err, tt.wantErr)
 				return
