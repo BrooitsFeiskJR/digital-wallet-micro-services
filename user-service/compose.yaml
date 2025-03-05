@@ -10,6 +10,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - digital-wallet-micro-services_default
   db:
     image: postgres:15.10-alpine
     restart: always
@@ -27,6 +29,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - digital-wallet-micro-services_default
 volumes:
   wallet-data:
 
+networks:
+  digital-wallet-micro-services_default:
+    external: true
