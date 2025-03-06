@@ -7,12 +7,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func setupTest(t *testing.T) {
+func setupTest(*testing.T) {
 	// Ensure RABBITMQ_CONN_STRING is set for tests
 	if os.Getenv("RABBITMQ_CONN_STRING") == "" {
 		os.Setenv("RABBITMQ_CONN_STRING", "amqp://guest:guest@localhost:5672/")
@@ -113,7 +114,7 @@ func TestPublishUserCreated(t *testing.T) {
 	require.NoError(t, err)
 	defer pub.Close()
 
-	userID := "test-user-123"
+	userID := uuid.New().String()
 	email := "test@example.com"
 
 	err = pub.PublishUserCreated(userID, email)
