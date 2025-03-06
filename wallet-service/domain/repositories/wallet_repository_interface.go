@@ -6,8 +6,8 @@ import (
 )
 
 type WalletRepository interface {
-	SaveWallet(wallet *dto.CreateWalletDTO) error
+	SaveWallet(wallet *dto.CreateWalletDTO) (any, error)
 	GetWalletByUserID(userID string) (*dto.WalletDTO, error)
-	Deposit(wallet *entities.Wallet, amount float64) (*dto.WalletDTO, error)
-	Withdraw(wallet *entities.Wallet, amount float64) (*dto.WalletDTO, error)
+	Deposit(wallet *dto.WalletDTO, amount float64) (any, error)
+	Withdraw(wallet *entities.Wallet, amount float64) (any, error)
 }
