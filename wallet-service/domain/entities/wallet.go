@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/BrooitsFeiskJR/digital-wallet-wallet-service/domain/dto"
+	validatiion "github.com/BrooitsFeiskJR/digital-wallet-wallet-service/domain/validation"
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -14,8 +16,9 @@ var (
 )
 
 type Wallet struct {
-	ID       primitive.ObjectID `bson:"id,omitempty" json:"id"`
-	UserID   primitive.ObjectID `bson:"user_id,omitempty" json:"user_id"`
+	ID       primitive.ObjectID `bson:"_id,omitempty"`
+	WalletID uuid.UUID          `bson:"wallet_id,omitempty" json:"wallet_id"`
+	UserID   uuid.UUID          `bson:"user_id,omitempty" json:"user_id"`
 	Balance  float64            `bson:"balance,omitempty" json:"balance"`
 	CreateAt time.Time          `bson:"create_at,omitempty" json:"create_at"`
 	UpdateAt time.Time          `bson:"update_at,omitempty" json:"update_at"`
@@ -25,15 +28,40 @@ func CreateWallet(dto *dto.CreateWalletDTO) (*Wallet, error) {
 	if dto.UserID == "" {
 		return nil, ErrEmptyUserID
 	}
-	uID, err := primitive.ObjectIDFromHex(dto.UserID)
+	p, err := uuid.Parse(dto.UserID)
 	if err != nil {
 		return nil, ErrConvertObjectID
 	}
+
 	return &Wallet{
-		ID:       primitive.NewObjectID(),
-		UserID:   uID,
+		WalletID: uuid.New(),
+		UserID:   p,
 		Balance:  0,
 		CreateAt: time.Now(),
 		UpdateAt: time.Now(),
 	}, nil
+}
+
+func (w *Wallet) Deposit(amount float64) error {
+	err := validatiion.ValidateAmount(amount)
+	if err != nil {
+		return err
+	}
+	w.Balance += amount
+	w.UpdateAt = time.Now()
+	return nil
+}
+
+func (w *Wallet) Withdraw(amount float64) error {
+	err := validatiion.ValidateAmount(amount)
+	if err != nil {
+		return err
+	}
+	err = validatiion.ValidateSuficientBalance(w.Balance, amount)
+	if err != nil {
+		return err
+	}
+	w.Balance -= amount
+	w.UpdateAt = time.Now()
+	return nil
 }
