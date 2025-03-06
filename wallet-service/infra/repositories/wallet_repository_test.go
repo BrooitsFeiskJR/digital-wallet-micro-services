@@ -107,9 +107,11 @@ func TestGetWalletByUserID(t *testing.T) {
 		}
 	}
 
+	// ... existing code ...
+
 	require.NoError(t, getErr, "Failed to get wallet by user ID after retries")
 	require.NotNil(t, wallet, "Retrieved wallet should not be nil")
-	assert.Equal(t, userId, wallet.UserID.String(), "UserID should match")
+	assert.Equal(t, userId, wallet.UserID, "UserID should match")
 	assert.Equal(t, 0.0, wallet.Balance, "Initial balance should be 0")
 }
 

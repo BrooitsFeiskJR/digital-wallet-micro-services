@@ -17,8 +17,8 @@ var (
 
 type Wallet struct {
 	ID       primitive.ObjectID `bson:"_id,omitempty"`
-	WalletID uuid.UUID          `bson:"wallet_id,omitempty" json:"wallet_id"`
-	UserID   uuid.UUID          `bson:"user_id,omitempty" json:"user_id"`
+	WalletID string             `bson:"wallet_id,omitempty" json:"wallet_id"` // Change to string
+	UserID   string             `bson:"user_id,omitempty" json:"user_id"`     // Change to string
 	Balance  float64            `bson:"balance,omitempty" json:"balance"`
 	CreateAt time.Time          `bson:"create_at,omitempty" json:"create_at"`
 	UpdateAt time.Time          `bson:"update_at,omitempty" json:"update_at"`
@@ -28,20 +28,20 @@ func CreateWallet(dto *dto.CreateWalletDTO) (*Wallet, error) {
 	if dto.UserID == "" {
 		return nil, ErrEmptyUserID
 	}
-	p, err := uuid.Parse(dto.UserID)
+
+	_, err := uuid.Parse(dto.UserID)
 	if err != nil {
 		return nil, ErrConvertObjectID
 	}
 
 	return &Wallet{
-		WalletID: uuid.New(),
-		UserID:   p,
+		WalletID: uuid.New().String(),
+		UserID:   dto.UserID,
 		Balance:  0,
 		CreateAt: time.Now(),
 		UpdateAt: time.Now(),
 	}, nil
 }
-
 func (w *Wallet) Deposit(amount float64) error {
 	err := validatiion.ValidateAmount(amount)
 	if err != nil {

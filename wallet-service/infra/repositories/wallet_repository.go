@@ -34,6 +34,7 @@ func (wr *WalletRepository) SaveWallet(wallet *dto.CreateWalletDTO) (any, error)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Printf("Inserted wallet with ID: %v\n", result.InsertedID)
 	return result.InsertedID, nil
 }
 
@@ -46,11 +47,12 @@ func (wr *WalletRepository) GetWalletByUserID(ctx context.Context, userID string
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	uid, err := uuid.Parse(userID)
+	_, err := uuid.Parse(userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse user id: %w", err)
 	}
-	filter := bson.D{{Key: "user_id", Value: uid}}
+
+	filter := bson.D{{Key: "user_id", Value: userID}}
 
 	var result entities.Wallet
 	err = wr.collection.FindOne(ctx, filter).Decode(&result)
@@ -64,12 +66,12 @@ func (wr *WalletRepository) GetWalletByUserID(ctx context.Context, userID string
 	return &dto.WalletDTO{
 		ID:       result.ID,
 		UserID:   result.UserID,
+		WalletID: result.WalletID,
 		Balance:  result.Balance,
 		CreateAt: result.CreateAt,
 		UpdateAt: result.UpdateAt,
 	}, nil
 }
-
 func (wr *WalletRepository) Deposit(wallet *dto.WalletDTO, amount float64) error {
 	filter := bson.D{{Key: "_id", Value: wallet.ID}}
 
