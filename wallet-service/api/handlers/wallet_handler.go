@@ -2,10 +2,13 @@ package handlers
 
 import (
 	"context"
-	"log"
+	"net/http"
 
+	"github.com/BrooitsFeiskJR/digital-wallet-wallet-service/api/responses"
 	"github.com/BrooitsFeiskJR/digital-wallet-wallet-service/domain/services"
 	rabbitmq "github.com/BrooitsFeiskJR/digital-wallet-wallet-service/internal/handlers"
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
 )
 
 type WalletHandler struct {
@@ -18,8 +21,37 @@ func NewWalletHandler(service *services.WalletService) *WalletHandler {
 	}
 }
 
-func (wh *WalletHandler) NewWalletForNewUserHandler(ctx context.Context) {
-	if err := rabbitmq.StartConsumerService(ctx, wh.service); err != nil {
-		log.Fatalf("Failed to start consumer service: %v", err)
+func (wh *WalletHandler) NewWalletForNewUserHandler(ctx context.Context) error {
+	return rabbitmq.StartConsumerService(ctx, wh.service)
+}
+
+func (wh *WalletHandler) GetWallet(ctx *gin.Context) {
+	claimsInterface, exists := ctx.Get("JWT_Claims")
+	if !exists {
+		response := responses.ErrorResponse(http.StatusUnauthorized, "claims not found")
+		response.ToJSON(ctx, http.StatusUnauthorized)
+		return
 	}
+	claims, ok := claimsInterface.(jwt.MapClaims)
+	if !ok {
+		response := responses.ErrorResponse(http.StatusInternalServerError, "invalid claims type")
+		response.ToJSON(ctx, http.StatusInternalServerError)
+		return
+	}
+
+	idStr, ok := claims["id"].(string)
+	if !ok {
+		response := responses.ErrorResponse(http.StatusInternalServerError, "invalid user ID in token")
+		response.ToJSON(ctx, http.StatusInternalServerError)
+		return
+	}
+
+	dto, err := wh.service.GetWalletByUserID(idStr)
+	if err != nil {
+		response := responses.ErrorResponse(http.StatusInternalServerError, err.Error())
+		response.ToJSON(ctx, http.StatusInternalServerError)
+		return
+	}
+	response := responses.SuccessResponse(dto, http.StatusOK)
+	response.ToJSON(ctx, http.StatusOK)
 }
