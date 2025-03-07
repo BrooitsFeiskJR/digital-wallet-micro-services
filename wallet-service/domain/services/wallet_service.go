@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 
 	"github.com/BrooitsFeiskJR/digital-wallet-wallet-service/domain/dto"
 	"github.com/BrooitsFeiskJR/digital-wallet-wallet-service/domain/repositories"
@@ -25,5 +26,8 @@ func (ws *WalletService) CreateWallet(dto *dto.CreateWalletDTO) error {
 }
 
 func (ws *WalletService) GetWalletByUserID(userID string) (*dto.WalletDTO, error) {
+	if userID == "" {
+		return nil, errors.New("empty user id")
+	}
 	return ws.repository.GetWalletByUserID(ws.ctx, userID)
 }
