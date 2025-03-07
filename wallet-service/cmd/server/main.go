@@ -3,11 +3,14 @@ package main
 import (
 	"context"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/BrooitsFeiskJR/digital-wallet-wallet-service/api/handlers"
+	"github.com/BrooitsFeiskJR/digital-wallet-wallet-service/api/routers"
 	"github.com/BrooitsFeiskJR/digital-wallet-wallet-service/domain/services"
 	"github.com/BrooitsFeiskJR/digital-wallet-wallet-service/infra/db"
 	"github.com/BrooitsFeiskJR/digital-wallet-wallet-service/infra/repositories"
@@ -16,6 +19,7 @@ import (
 func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
+
 	mongoURI := os.Getenv("MONGO_URI")
 	if mongoURI == "" {
 		log.Fatal("MONGO_URI environment variable is required")
@@ -27,22 +31,38 @@ func main() {
 	}
 
 	walletRepo := repositories.NewWalletRepository(mongoClient)
-
-	// Initialize services
 	walletService := services.NewWalletService(walletRepo, ctx)
-
-	// Initialize handlers
 	walletHandler := handlers.NewWalletHandler(walletService)
 
-	go walletHandler.NewWalletForNewUserHandler(ctx)
+	go func() {
+		if err := walletHandler.NewWalletForNewUserHandler(ctx); err != nil {
+			log.Printf("Error in RabbitMQ consumer: %v", err)
+		}
+	}()
 
-	blockUntilShutdown()
-}
+	router := routers.Initialize(walletHandler)
 
-func blockUntilShutdown() {
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+	srv := &http.Server{
+		Addr:    ":8081",
+		Handler: router,
+	}
 
-	<-quit
+	go func() {
+		log.Println("Starting server on :8081")
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Server error: %v", err)
+		}
+	}()
 
+	<-ctx.Done()
+	log.Println("Shutting down server...")
+
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer shutdownCancel()
+
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		log.Fatalf("Server forced to shutdown: %v", err)
+	}
+
+	log.Println("Server exiting")
 }
