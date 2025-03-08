@@ -13,6 +13,8 @@ import (
 var (
 	ErrEmptyUserID     = errors.New("empty user id")
 	ErrConvertObjectID = errors.New("error convert object id")
+	ErrInsuffientFound = errors.New("insufficient found")
+	ErrInvalidAmount   = errors.New("invalid amount")
 )
 
 type Wallet struct {
@@ -45,7 +47,7 @@ func CreateWallet(dto *dto.CreateWalletDTO) (*Wallet, error) {
 func (w *Wallet) Deposit(amount float64) error {
 	err := validatiion.ValidateAmount(amount)
 	if err != nil {
-		return err
+		return ErrInvalidAmount
 	}
 	w.Balance += amount
 	w.UpdateAt = time.Now()
@@ -55,7 +57,7 @@ func (w *Wallet) Deposit(amount float64) error {
 func (w *Wallet) Withdraw(amount float64) error {
 	err := validatiion.ValidateAmount(amount)
 	if err != nil {
-		return err
+		return ErrInsuffientFound
 	}
 	err = validatiion.ValidateSuficientBalance(w.Balance, amount)
 	if err != nil {
