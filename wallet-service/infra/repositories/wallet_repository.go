@@ -18,10 +18,10 @@ type WalletRepository struct {
 	collection *mongo.Collection
 }
 
-func NewWalletRepository(mongoClient *mongo.Client) *WalletRepository {
+func NewWalletRepository(client *mongo.Client) *WalletRepository {
 	return &WalletRepository{
-		client:     mongoClient,
-		collection: mongoClient.Database("wallet").Collection("wallets"),
+		client:     client,
+		collection: client.Database("wallet").Collection("wallets"),
 	}
 }
 
@@ -72,38 +72,133 @@ func (wr *WalletRepository) GetWalletByUserID(ctx context.Context, userID string
 		UpdateAt: result.UpdateAt,
 	}, nil
 }
-func (wr *WalletRepository) Deposit(wallet *dto.WalletDTO, amount float64) error {
-	filter := bson.D{{Key: "_id", Value: wallet.ID}}
 
-	var result entities.Wallet
-	err := wr.collection.FindOne(context.TODO(), filter).Decode(&result)
+func (wr *WalletRepository) Deposit(dto *dto.DepostiWalletDTO) error {
+	fmt.Printf("Attempting deposit for user: %s, amount: %.2f\n", dto.UserID, dto.Amount)
+	if dto.UserID == "" {
+		return fmt.Errorf("empty user id")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, err := uuid.Parse(dto.UserID)
 	if err != nil {
+		return fmt.Errorf("failed to parse user id: %w", err)
+	}
+
+	filter := bson.D{{Key: "user_id", Value: dto.UserID}}
+
+	session, err := wr.client.StartSession()
+	if err != nil {
+		return fmt.Errorf("failed to start session: %w", err)
+	}
+	defer session.EndSession(ctx)
+
+	var wallet entities.Wallet
+	_, err = session.WithTransaction(ctx, func(sessCtx mongo.SessionContext) (interface{}, error) {
+		err := wr.collection.FindOne(sessCtx, filter).Decode(&wallet)
+		if err != nil {
+			if errors.Is(err, mongo.ErrNoDocuments) {
+				return nil, ErrWalletNotFound
+			}
+			return nil, fmt.Errorf("failed to get wallet: %w", err)
+		}
+
+		err = wallet.Deposit(dto.Amount)
+		if err != nil {
+			return nil, err
+		}
+
+		update := bson.D{
+			{Key: "$set", Value: bson.D{
+				{Key: "balance", Value: wallet.Balance},
+				{Key: "update_at", Value: wallet.UpdateAt},
+			}},
+		}
+
+		result, err := wr.collection.UpdateOne(sessCtx, filter, update)
+		if err != nil {
+			return nil, fmt.Errorf("failed to update wallet: %w", err)
+		}
+
+		if result.ModifiedCount == 0 {
+			return nil, errors.New("wallet was not updated")
+		}
+
+		return nil, nil
+	})
+
+	if err != nil {
+		fmt.Printf("Deposit failed: %v\n", err)
 		return err
 	}
-	result.Deposit(amount)
-	_, err = wr.collection.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: result}})
-	if err != nil {
-		return err
-	}
+
+	fmt.Printf("Deposit successful for user %s, new balance: %.2f\n", dto.UserID, wallet.Balance)
 	return nil
 }
 
-func (wr *WalletRepository) Withdraw(wallet *dto.WalletDTO, amount float64) (any, error) {
-	filter := bson.D{{Key: "_id", Value: wallet.ID}}
-
-	var result entities.Wallet
-	err := wr.collection.FindOne(context.Background(), filter).Decode(&result)
-	if err != nil {
-		return nil, err
-	}
-	err = result.Withdraw(amount)
-	if err != nil {
-		return nil, err
-	}
-	mongoResult, err := wr.collection.UpdateOne(context.Background(), filter, bson.D{{Key: "$set", Value: result}})
-	if err != nil {
-		return nil, err
+func (wr *WalletRepository) Withdraw(dto *dto.WithdrawWalletDTO) error {
+	fmt.Printf("Attempting withdrawal for user: %s, amount: %.2f\n", dto.UserID, dto.Amount)
+	if dto.UserID == "" {
+		return fmt.Errorf("empty user id")
 	}
 
-	return mongoResult.UpsertedID, nil
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, err := uuid.Parse(dto.UserID)
+	if err != nil {
+		return fmt.Errorf("failed to parse user id: %w", err)
+	}
+
+	filter := bson.D{{Key: "user_id", Value: dto.UserID}}
+
+	session, err := wr.client.StartSession()
+	if err != nil {
+		return fmt.Errorf("failed to start session: %w", err)
+	}
+	defer session.EndSession(ctx)
+
+	var wallet entities.Wallet
+	_, err = session.WithTransaction(ctx, func(sessCtx mongo.SessionContext) (interface{}, error) {
+		err := wr.collection.FindOne(sessCtx, filter).Decode(&wallet)
+		if err != nil {
+			if errors.Is(err, mongo.ErrNoDocuments) {
+				return nil, ErrWalletNotFound
+			}
+			return nil, fmt.Errorf("failed to get wallet: %w", err)
+		}
+
+		err = wallet.Withdraw(dto.Amount)
+		if err != nil {
+			return nil, err
+		}
+
+		update := bson.D{
+			{Key: "$set", Value: bson.D{
+				{Key: "balance", Value: wallet.Balance},
+				{Key: "update_at", Value: wallet.UpdateAt},
+			}},
+		}
+
+		result, err := wr.collection.UpdateOne(sessCtx, filter, update)
+		if err != nil {
+			return nil, fmt.Errorf("failed to update wallet: %w", err)
+		}
+
+		if result.ModifiedCount == 0 {
+			return nil, errors.New("wallet was not updated")
+		}
+
+		return nil, nil
+	})
+
+	if err != nil {
+		fmt.Printf("Withdrawal failed: %v\n", err)
+		return err
+	}
+
+	fmt.Printf("Withdrawal successful for user %s, new balance: %.2f\n", dto.UserID, wallet.Balance)
+	return nil
 }
