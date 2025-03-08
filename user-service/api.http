@@ -27,7 +27,7 @@ Content-Type: application/json
 
 {
     "name": "John Doe",
-    "email": "jhon2@example.com",
+    "email": "jhon@example.com",
     "password": "password",
     "confirm_password": "password",
     "phone_number": "43999999999",
@@ -39,7 +39,7 @@ POST http://localhost:8080/api/v1/auth/login
 Content-Type: application/json
 
 {
-    "email": "jhon2@example.com",
+    "email": "jhon@example.com",
     "password": "password"
 }
 ###
@@ -49,3 +49,21 @@ Content-Type: application/json
 # Wallet API requests
 GET http://localhost:8081/api/v1/wallet/
 Authorization: Bearer {{ authToken }}
+###
+
+POST http://localhost:8081/api/v1/wallet/deposit
+Content-Type: application/json
+Authorization: Bearer {{ authToken }}
+
+{
+    "amount": 3000.0
+}
+###
+POST http://localhost:8081/api/v1/wallet/withdraw
+Content-Type: application/json
+Authorization: Bearer {{ authToken }}
+
+{
+    "amount": 2500.0
+}
+
