@@ -9,6 +9,6 @@ import (
 type WalletRepository interface {
 	SaveWallet(wallet *dto.CreateWalletDTO) (any, error)
 	GetWalletByUserID(ctx context.Context, userID string) (*dto.WalletDTO, error)
-	Deposit(wallet *dto.WalletDTO, amount float64) error
-	Withdraw(wallet *dto.WalletDTO, amount float64) (any, error)
+	Deposit(dto *dto.DepostiWalletDTO) error
+	Withdraw(dto *dto.WithdrawWalletDTO) error
 }
