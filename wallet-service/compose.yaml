@@ -8,14 +8,16 @@ services:
     env_file:
       - .env
     depends_on:
-      mongo:
-        condition: service_healthy
+      mongo-init:
+        condition: service_completed_successfully
     networks:
       - digital-wallet-micro-services_default
 
   mongo:
     image: mongo:7.0
     restart: always
+    hostname: mongo
+    command: --bind_ip_all --replSet rs0
     env_file:
       - .env
     environment:
@@ -24,14 +26,23 @@ services:
       - MONGODB_INITDB_DATABASE=${MONGODB_INITDB_DATABASE}
     ports:
       - 27017:27017
-    volumes:
-      - ./infra/db/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh --host localhost --username ${MONGODB_INITDB_ROOT_USERNAME} --password ${MONGODB_INITDB_ROOT_PASSWORD} --authenticationDatabase admin --quiet
+      test: echo 'db.runCommand("ping").ok' | mongosh --quiet
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
+    networks:
+      - digital-wallet-micro-services_default
+
+  mongo-init:
+    image: mongo:7.0
+    depends_on:
+      mongo:
+        condition: service_healthy
+    volumes:
+      - ./infra/db/scripts/init-mongo.js:/scripts/init-mongo.js:ro
+    command: mongosh --host mongo:27017 /scripts/init-mongo.js
     networks:
       - digital-wallet-micro-services_default
 
@@ -47,8 +58,8 @@ services:
       - ME_CONFIG_BASICAUTH_USERNAME=admin
       - ME_CONFIG_BASICAUTH_PASSWORD=admin123
     depends_on:
-      mongo:
-        condition: service_healthy
+      mongo-init:
+        condition: service_completed_successfully
     networks:
       - digital-wallet-micro-services_default
 
