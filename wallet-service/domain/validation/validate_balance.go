@@ -7,7 +7,7 @@ var (
 )
 
 func ValidateSuficientBalance(balance, amount float64) error {
-	if balance < amount {
+	if amount > balance {
 		return ErrInsufficientBalance
 	}
 	return nil
