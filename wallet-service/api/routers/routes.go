@@ -15,6 +15,8 @@ func initializeRoutes(
 		wallet := v1.Group("/wallet").Use(middleware.VerifyJwtMiddleware())
 		{
 			wallet.GET("/", walletHandler.GetWallet)
+			wallet.POST("/deposit", walletHandler.DepositHandler)
+			wallet.POST("/withdraw", walletHandler.WithdrawHandler)
 		}
 	}
 }
