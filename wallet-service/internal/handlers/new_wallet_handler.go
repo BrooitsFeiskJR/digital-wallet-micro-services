@@ -22,7 +22,7 @@ type UserPayload struct {
 }
 
 // NewUserRegistrationHandler creates a handler that processes new user registration events
-func NewUserRegistrationHandler(walletService *services.WalletService) rabbitmq.MessageHandler {
+func NewUserRegistrationHandler(walletService services.WalletServiceInterface) rabbitmq.MessageHandler {
 	return func(msg []byte) error {
 		// Parse the message
 		var userMsg UserPayload
@@ -61,7 +61,7 @@ func NewUserRegistrationHandler(walletService *services.WalletService) rabbitmq.
 	}
 }
 
-func SetupUserRegistrationConsumer(queueName string, walletService *services.WalletService) (*rabbitmq.Consumer, error) {
+func SetupUserRegistrationConsumer(queueName string, walletService services.WalletServiceInterface) (*rabbitmq.Consumer, error) {
 	consumer, err := rabbitmq.NewConsumer(queueName)
 	if err != nil {
 		return nil, err
@@ -75,7 +75,7 @@ func SetupUserRegistrationConsumer(queueName string, walletService *services.Wal
 }
 
 // Example usage in your main.go or service init
-func StartConsumerService(ctx context.Context, walletService *services.WalletService) error {
+func StartConsumerService(ctx context.Context, walletService services.WalletServiceInterface) error {
 	consumer, err := SetupUserRegistrationConsumer("user_queue", walletService)
 	if err != nil {
 		return err

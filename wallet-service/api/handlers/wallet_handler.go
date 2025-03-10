@@ -16,10 +16,10 @@ import (
 )
 
 type WalletHandler struct {
-	service *services.WalletService
+	service services.WalletServiceInterface
 }
 
-func NewWalletHandler(service *services.WalletService) *WalletHandler {
+func NewWalletHandler(service services.WalletServiceInterface) *WalletHandler {
 	return &WalletHandler{
 		service: service,
 	}
