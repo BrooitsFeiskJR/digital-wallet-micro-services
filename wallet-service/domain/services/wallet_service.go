@@ -3,9 +3,11 @@ package services
 import (
 	"context"
 	"errors"
+	"log"
 
 	"github.com/BrooitsFeiskJR/digital-wallet-wallet-service/domain/dto"
 	"github.com/BrooitsFeiskJR/digital-wallet-wallet-service/domain/repositories"
+	"github.com/BrooitsFeiskJR/digital-wallet-wallet-service/internal/rabbitmq"
 )
 
 type WalletService struct {
@@ -42,6 +44,15 @@ func (ws *WalletService) DepositToUserWallet(deposit *dto.DepostiWalletDTO) erro
 	if err := ws.repository.Deposit(deposit); err != nil {
 		return err
 	}
+	publisher, err := rabbitmq.NewPublisher()
+	if err != nil {
+		return err
+	}
+	defer publisher.Close()
+	err = publisher.PulishTransactionCreated("deposit", deposit.UserID, deposit.Amount)
+	if err != nil {
+		log.Printf("Failed to publish deposit created message: %v", err)
+	}
 	return nil
 }
 
@@ -54,6 +65,15 @@ func (ws *WalletService) WithdrawUserWallet(withdraw *dto.WithdrawWalletDTO) err
 	}
 	if err := ws.repository.Withdraw(withdraw); err != nil {
 		return err
+	}
+	publisher, err := rabbitmq.NewPublisher()
+	if err != nil {
+		return err
+	}
+	defer publisher.Close()
+	err = publisher.PulishTransactionCreated("withdraw", withdraw.UserID, withdraw.Amount)
+	if err != nil {
+		log.Printf("Failed to publish withdraw created message: %v", err)
 	}
 	return nil
 }
