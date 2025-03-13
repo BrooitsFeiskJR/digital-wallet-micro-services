@@ -10,17 +10,32 @@ import (
 
 var secretKey = []byte(os.Getenv("SECRECT_KEY"))
 
-func CreateToken(id uuid.UUID, name, email string) (string, error) {
+func CreateAccessToken(id uuid.UUID, name, email string) (string, error) {
+	// TODO: Change algortim to RS256
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":    id,
 		"name":  name,
 		"email": email,
-		"exp":   time.Now().Add(time.Hour * 8).Unix(),
+		"exp":   time.Now().Add(time.Minute * 5).Unix(),
 	})
 
-	tokenString, err := token.SignedString(secretKey)
+	accessToken, err := token.SignedString(secretKey)
 	if err != nil {
 		return "", err
 	}
-	return tokenString, nil
+	return accessToken, nil
+}
+
+func CreateRefreshAcessToken(id uuid.UUID, name, email string) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id":    id,
+		"name":  name,
+		"email": email,
+		"exp":   time.Now().Add(time.Hour * 48).Unix(), // 2 days
+	})
+	refreshToken, err := token.SignedString(secretKey)
+	if err != nil {
+		return "", err
+	}
+	return refreshToken, nil
 }
