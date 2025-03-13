@@ -1,25 +1,46 @@
 package auth
 
 import (
+	"crypto/rsa"
+	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 )
 
-var secretKey = []byte(os.Getenv("SECRECT_KEY"))
+var (
+	privateKey *rsa.PrivateKey
+)
+
+func init() {
+	privateKeyPEM := strings.ReplaceAll(os.Getenv("JWT_PRIVATE_KEY"), "\\n", "\n")
+
+	var err error
+	privateKey, err = jwt.ParseRSAPrivateKeyFromPEM([]byte(privateKeyPEM))
+	if err != nil {
+		fmt.Printf("Error parsing private key: %v\n", err)
+	}
+
+	if err != nil {
+		fmt.Printf("Error parsing public key: %v\n", err)
+	}
+}
 
 func CreateAccessToken(id uuid.UUID, name, email string) (string, error) {
-	// TODO: Change algortim to RS256
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+	if privateKey == nil {
+		return "", fmt.Errorf("private key not initialized")
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
 		"id":    id,
 		"name":  name,
 		"email": email,
 		"exp":   time.Now().Add(time.Minute * 5).Unix(),
 	})
 
-	accessToken, err := token.SignedString(secretKey)
+	accessToken, err := token.SignedString(privateKey)
 	if err != nil {
 		return "", err
 	}
@@ -27,13 +48,16 @@ func CreateAccessToken(id uuid.UUID, name, email string) (string, error) {
 }
 
 func CreateRefreshAcessToken(id uuid.UUID, name, email string) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+	if privateKey == nil {
+		return "", fmt.Errorf("private key not initialized")
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
 		"id":    id,
 		"name":  name,
 		"email": email,
 		"exp":   time.Now().Add(time.Hour * 48).Unix(), // 2 days
 	})
-	refreshToken, err := token.SignedString(secretKey)
+	refreshToken, err := token.SignedString(privateKey)
 	if err != nil {
 		return "", err
 	}

@@ -8,11 +8,11 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
-var secretKey = []byte(os.Getenv("SECRECT_KEY"))
+var publicKey = []byte(os.Getenv("JWT_PUBLIC_KEY"))
 
 func VerifyToken(tokenString string, claimsParam jwt.Claims) error {
 	token, err := jwt.ParseWithClaims(tokenString, claimsParam, func(token *jwt.Token) (interface{}, error) {
-		return secretKey, nil
+		return publicKey, nil
 	})
 
 	if err != nil {

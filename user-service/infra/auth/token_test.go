@@ -3,27 +3,56 @@ package auth
 import (
 	"testing"
 
+	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreateToken(t *testing.T) {
+func TestMissingPrivateKey(t *testing.T) {
+	originalPrivateKey := privateKey
+	privateKey = nil
+	defer func() { privateKey = originalPrivateKey }()
 
 	id := uuid.New()
 	name := "John Doe"
 	email := "john.doe@example.com"
 
-	tokenString, err := CreateAccessToken(id, name, email)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, tokenString)
+	accessToken, err := CreateAccessToken(id, name, email)
+	assert.Error(t, err)
+	assert.Equal(t, "private key not initialized", err.Error())
+	assert.Empty(t, accessToken)
+
+	refreshToken, err := CreateRefreshAcessToken(id, name, email)
+	assert.Error(t, err)
+	assert.Equal(t, "private key not initialized", err.Error())
+	assert.Empty(t, refreshToken)
 }
 
-func TestCreateRefreshToken(t *testing.T) {
+func TestTokenWithValidData(t *testing.T) {
+	if privateKey == nil {
+		t.Skip("Private key not initialized, skipping test")
+	}
+
 	id := uuid.New()
 	name := "John Doe"
 	email := "john.doe@example.com"
 
-	tokenString, err := CreateRefreshAcessToken(id, name, email)
+	accessToken, err := CreateAccessToken(id, name, email)
 	assert.NoError(t, err)
-	assert.NotEmpty(t, tokenString)
+	assert.NotEmpty(t, accessToken)
+
+	token, err := jwt.Parse(accessToken, func(token *jwt.Token) (interface{}, error) {
+		return &privateKey.PublicKey, nil
+	})
+
+	assert.NoError(t, err)
+	assert.True(t, token.Valid)
+	assert.NotNil(t, accessToken)
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	assert.True(t, ok)
+	assert.Equal(t, id.String(), claims["id"])
+	assert.Equal(t, name, claims["name"])
+	assert.Equal(t, email, claims["email"])
+	assert.NotEmpty(t, claims["exp"])
 }
