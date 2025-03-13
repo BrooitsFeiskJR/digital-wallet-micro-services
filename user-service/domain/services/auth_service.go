@@ -2,7 +2,6 @@ package services
 
 import (
 	"errors"
-	"log"
 
 	"github.com/BrooitsFeiskJR/digital-wallet-user-service/domain/dto"
 	"github.com/BrooitsFeiskJR/digital-wallet-user-service/domain/repositories"
@@ -52,12 +51,12 @@ func (as *AuthService) Register(dto *dto.CreateUserDTO) (*dto.UserDTO, error) {
 	}
 	publisher, err := rabbitmq.NewPublisher()
 	if err != nil {
-		log.Fatalf("Failed to create publisher: %v", err)
+		return nil, errors.New("failed to create publisher")
 	}
 	defer publisher.Close()
 	err = publisher.PublishUserCreated(userDTO.ID.String(), userDTO.Email)
 	if err != nil {
-		log.Printf("Failed to publish user created message: %v", err)
+		return nil, errors.New("failed to publish user created")
 	}
 	return userDTO, nil
 }
