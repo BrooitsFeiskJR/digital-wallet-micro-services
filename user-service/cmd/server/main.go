@@ -10,7 +10,7 @@ import (
 
 func main() {
 	connString := db.ConnectionString()
-	db, err := db.ConnectToDB(connString)
+	db, err := db.GetDBConnection(connString)
 	if err != nil {
 		fmt.Printf("error connecting to database: %v", err)
 		return
