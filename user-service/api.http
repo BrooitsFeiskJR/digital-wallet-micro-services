@@ -43,7 +43,7 @@ Content-Type: application/json
     "password": "password"
 }
 ###
-@authToken = {{ login.response.body.data }}
+@authToken = {{ login.response.body.data.access_token }}
 ###
 
 # Wallet API requests
