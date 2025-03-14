@@ -6,6 +6,6 @@ import (
 )
 
 type AuthServiceInterface interface {
-	Login(req valueobject.LoginRequest) (string, error)
+	Login(req valueobject.LoginRequest) (string, string, error)
 	Register(dto *dto.CreateUserDTO) (*dto.UserDTO, error)
 }

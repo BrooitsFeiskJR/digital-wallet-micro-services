@@ -81,7 +81,7 @@ func TestAuthService_Login(t *testing.T) {
 				Password: tt.password,
 			}
 
-			token, err := authService.Login(login)
+			token, _, err := authService.Login(login)
 			if err != nil {
 				assert.Equal(t, tt.wantError.Error(), err.Error())
 			} else {
@@ -184,7 +184,7 @@ func TestAuthService_Login_TokenCreationFailure(t *testing.T) {
 		Password: "password",
 	}
 
-	token, err := authService.Login(login)
+	token, _, err := authService.Login(login)
 	if err != nil {
 		assert.Contains(t, err.Error(), "failed to create token")
 	} else {

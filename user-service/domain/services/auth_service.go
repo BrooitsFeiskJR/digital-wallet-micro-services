@@ -26,19 +26,23 @@ func NewAuthService(repository repositories.AuthRepositoryInterface) (*AuthServi
 	return &AuthService{repository: repository}, nil
 }
 
-func (as *AuthService) Login(req valueobject.LoginRequest) (string, error) {
+func (as *AuthService) Login(req valueobject.LoginRequest) (string, string, error) {
 	user, err := as.repository.Login(req.Email)
 	if err != nil {
-		return "user not found", err
+		return "", "", err
 	}
 	if err := validation.CheckHashPassword(user.Password, req.Password); err != nil {
-		return "", errors.New("invalid password")
+		return "", "", errors.New("invalid password")
 	}
-	tokenString, err := auth.CreateToken(user.ID, user.Name, user.Email)
+	accessToken, err := auth.CreateAccessToken(user.ID, user.Name, user.Email)
 	if err != nil {
-		return "", errors.New("failed to create token")
+		return "", "", err
 	}
-	return tokenString, nil
+	refreshToken, err := auth.CreateAccessToken(user.ID, user.Name, user.Email)
+	if err != nil {
+		return "", "", errors.New("failed to create refresh token")
+	}
+	return accessToken, refreshToken, nil
 }
 
 func (as *AuthService) Register(dto *dto.CreateUserDTO) (*dto.UserDTO, error) {
