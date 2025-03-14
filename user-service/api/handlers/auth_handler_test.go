@@ -28,9 +28,9 @@ func (m *MockAuthService) Register(createUserDTO *dto.CreateUserDTO) (*dto.UserD
 	return nil, args.Error(1)
 }
 
-func (m *MockAuthService) Login(loginRequest valueobject.LoginRequest) (string, error) {
+func (m *MockAuthService) Login(loginRequest valueobject.LoginRequest) (string, string, error) {
 	args := m.Called(loginRequest)
-	return args.String(0), args.Error(1)
+	return args.String(0), args.String(0), args.Error(1)
 }
 
 func TestRegisterHandler(t *testing.T) {

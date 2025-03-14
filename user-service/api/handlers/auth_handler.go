@@ -42,18 +42,26 @@ func (ah *AuthHandler) RegisterHandler(ctx *gin.Context) {
 }
 
 func (ah *AuthHandler) LoginUser(ctx *gin.Context) {
+	type responseToken struct {
+		AccessToken  string `json:"access_token"`
+		RefreshToken string `json:"refresh_token"`
+	}
 	var loginRequest valueobject.LoginRequest
 	if err := ctx.ShouldBindJSON(&loginRequest); err != nil {
 		response := responses.ErrorResponse(http.StatusBadRequest, err.Error())
 		response.ToJSON(ctx, http.StatusBadRequest)
 		return
 	}
-	token, err := ah.service.Login(loginRequest)
+	accessToken, refreshToken, err := ah.service.Login(loginRequest)
 	if err != nil {
 		response := responses.ErrorResponse(http.StatusBadRequest, err.Error())
 		response.ToJSON(ctx, http.StatusBadRequest)
 		return
 	}
-	response := responses.SuccessResponse(token, http.StatusOK)
+	tokens := responseToken{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}
+	response := responses.SuccessResponse(tokens, http.StatusOK)
 	response.ToJSON(ctx, http.StatusOK)
 }
