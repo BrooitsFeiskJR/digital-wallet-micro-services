@@ -15,6 +15,11 @@ func main() {
 		fmt.Printf("error connecting to database: %v", err)
 		return
 	}
+	// TODO: Fix: this is nill pointer dereference
+	userHandler, err := config.UserHandlerSetup(db)
+	if err != nil {
+		fmt.Printf("error setting up user handler: %v", err)
+	}
 	authHandler := config.AuthHandlerSetup(db)
-	routers.Initialize(authHandler)
+	routers.Initialize(authHandler, userHandler)
 }
