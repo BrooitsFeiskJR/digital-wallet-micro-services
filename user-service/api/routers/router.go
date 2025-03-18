@@ -5,8 +5,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Initialize(authHandler *handlers.AuthHandler) {
+func Initialize(authHandler *handlers.AuthHandler, userHandler *handlers.UserHandler) {
 	router := gin.Default()
-	initializeRoutes(router, authHandler)
+	initializeRoutes(router, authHandler, userHandler)
 	router.Run(":8080")
 }

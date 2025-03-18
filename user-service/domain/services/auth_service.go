@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	ErrNilRepository = errors.New("nil repository")
+	ErrNilRepository = errors.New("user repository is required")
 )
 
 type AuthService struct {

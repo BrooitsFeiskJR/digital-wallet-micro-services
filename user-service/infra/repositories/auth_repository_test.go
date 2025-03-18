@@ -35,11 +35,12 @@ func TestAuthRepository_Register(t *testing.T) {
 	assert.NoError(t, err)
 
 	req := &dto.CreateUserDTO{
-		Name:        "New User",
-		Email:       "newuser@example.com",
-		Password:    "password",
-		PhoneNumber: "43999999999",
-		CPF:         "12345678909",
+		Name:            "New User",
+		Email:           "newuser@example.com",
+		Password:        "password",
+		ConfirmPassword: "password",
+		PhoneNumber:     "43999999999",
+		CPF:             "12345678909",
 	}
 
 	userDTO, err := repo.Register(req)

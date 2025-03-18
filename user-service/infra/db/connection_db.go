@@ -2,6 +2,7 @@ package db
 
 import (
 	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/jmoiron/sqlx"
@@ -31,5 +32,6 @@ func GetDBConnection(connString string) (*sqlx.DB, error) {
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("Successfully connected to database")
 	return dbConn, nil
 }
