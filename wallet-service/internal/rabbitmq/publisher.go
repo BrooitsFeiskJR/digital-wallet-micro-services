@@ -78,15 +78,17 @@ func (p *Publisher) PublishMessage(ctx context.Context, queueName string, messag
 	)
 }
 
-func (p *Publisher) PulishTransactionCreated(eventType, userID string, amount float64) error {
+func (p *Publisher) PulishTransactionCreated(eventType, userID, walletID, toWalletID string, amount float64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	message := map[string]any{
-		"event_type": eventType,
-		"user_id":    userID,
-		"amount":     amount,
-		"created_at": time.Now(),
+		"event_type":   eventType,
+		"user_id":      userID,
+		"wallet_id":    walletID,
+		"to_wallet_id": toWalletID,
+		"amount":       amount,
+		"created_at":   time.Now(),
 	}
 
 	return p.PublishMessage(ctx, "transactions_queue", message)
