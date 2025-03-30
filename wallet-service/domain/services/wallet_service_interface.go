@@ -7,4 +7,5 @@ type WalletServiceInterface interface {
 	GetWalletByUserID(userID string) (*dto.WalletDTO, error)
 	DepositToUserWallet(deposit *dto.DepostiWalletDTO) error
 	WithdrawUserWallet(withdraw *dto.WithdrawWalletDTO) error
+	MakeTransaction(dto *dto.TransactionRequestDTO) error
 }
