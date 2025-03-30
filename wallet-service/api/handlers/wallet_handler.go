@@ -11,6 +11,7 @@ import (
 	"github.com/BrooitsFeiskJR/digital-wallet-wallet-service/domain/dto"
 	"github.com/BrooitsFeiskJR/digital-wallet-wallet-service/domain/services"
 	rabbitmq "github.com/BrooitsFeiskJR/digital-wallet-wallet-service/internal/handlers"
+	"github.com/BrooitsFeiskJR/digital-wallet-wallet-service/usecases"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 )
@@ -134,4 +135,36 @@ func (h *WalletHandler) WithdrawHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, responses.SuccessResponse(wallet, http.StatusOK, "Withdrawal successful"))
+}
+
+func (wh *WalletHandler) MakeTransactionHandler(ctx *gin.Context) {
+	idStr, claimsResponse := GetUserIdHelper(ctx)
+	if claimsResponse != nil {
+		claimsResponse.ToJSON(ctx, http.StatusUnauthorized)
+		return
+	}
+	var request dto.TransactionRequestDTO
+	request.WalletFrom = idStr
+	if err := ctx.ShouldBindBodyWithJSON(&request); err != nil {
+		response := responses.ErrorResponse(http.StatusBadRequest, err.Error())
+		response.ToJSON(ctx, http.StatusBadRequest)
+		return
+	}
+	if err := wh.service.MakeTransaction(&request); err != nil {
+		response := responses.ErrorResponse(http.StatusInternalServerError, err.Error())
+		response.ToJSON(ctx, http.StatusInternalServerError)
+		return
+	}
+
+	// Publish the transaction to RabbitMQ
+	transactionUseCase := usecases.NewPublishTransactionUseCaseFactory(request.TransactionType, idStr, request.WalletFrom, request.WalletTo, request.Amount)
+	if err := transactionUseCase.Execute(); err != nil {
+		response := responses.ErrorResponse(http.StatusInternalServerError, err.Error())
+		response.ToJSON(ctx, http.StatusInternalServerError)
+		return
+	}
+
+	response := responses.SuccessResponse(nil, http.StatusOK)
+	response.ToJSON(ctx, http.StatusOK)
+
 }
