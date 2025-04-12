@@ -12,12 +12,14 @@ import (
 
 type WalletService struct {
 	repository repositories.WalletRepository
+	publisher  *rabbitmq.Publisher
 	ctx        context.Context
 }
 
-func NewWalletService(repository repositories.WalletRepository, ctx context.Context) *WalletService {
+func NewWalletService(repository repositories.WalletRepository, rabbit *rabbitmq.Publisher, ctx context.Context) *WalletService {
 	return &WalletService{
 		repository: repository,
+		publisher:  rabbit,
 		ctx:        ctx,
 	}
 }
@@ -44,12 +46,9 @@ func (ws *WalletService) DepositToUserWallet(deposit *dto.DepostiWalletDTO) erro
 	if err := ws.repository.Deposit(deposit); err != nil {
 		return err
 	}
-	publisher, err := rabbitmq.NewPublisher()
-	if err != nil {
-		return err
-	}
-	defer publisher.Close()
-	err = publisher.PulishTransactionCreated("deposit", deposit.UserID, deposit.Amount)
+
+	defer ws.publisher.Close()
+	err := ws.publisher.PulishTransactionCreated("deposit", deposit.UserID, deposit.Amount)
 	if err != nil {
 		log.Printf("Failed to publish deposit created message: %v", err)
 	}
@@ -66,14 +65,13 @@ func (ws *WalletService) WithdrawUserWallet(withdraw *dto.WithdrawWalletDTO) err
 	if err := ws.repository.Withdraw(withdraw); err != nil {
 		return err
 	}
-	publisher, err := rabbitmq.NewPublisher()
-	if err != nil {
-		return err
-	}
-	defer publisher.Close()
-	err = publisher.PulishTransactionCreated("withdraw", withdraw.UserID, withdraw.Amount)
-	if err != nil {
+	defer ws.publisher.Close()
+	if err := ws.publisher.PulishTransactionCreated("withdraw", withdraw.UserID, withdraw.Amount); err != nil {
 		log.Printf("Failed to publish withdraw created message: %v", err)
 	}
+	return nil
+}
+
+func (ws *WalletService) MakeTransaction(dto *dto.TransactionRequestDTO) error {
 	return nil
 }

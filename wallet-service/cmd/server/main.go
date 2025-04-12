@@ -14,6 +14,7 @@ import (
 	"github.com/BrooitsFeiskJR/digital-wallet-wallet-service/domain/services"
 	"github.com/BrooitsFeiskJR/digital-wallet-wallet-service/infra/db"
 	"github.com/BrooitsFeiskJR/digital-wallet-wallet-service/infra/repositories"
+	"github.com/BrooitsFeiskJR/digital-wallet-wallet-service/internal/rabbitmq"
 )
 
 func main() {
@@ -30,8 +31,13 @@ func main() {
 		log.Fatalf("Failed to connect to MongoDB: %v", err)
 	}
 
+	rabbit, err := rabbitmq.NewPublisher()
+	if err != nil {
+		log.Fatalf("Failed to connect to RabbitMQ: %v", err)
+	}
+
 	walletRepo := repositories.NewWalletRepository(mongoClient)
-	walletService := services.NewWalletService(walletRepo, ctx)
+	walletService := services.NewWalletService(walletRepo, rabbit, ctx)
 	walletHandler := handlers.NewWalletHandler(walletService)
 
 	go func() {
